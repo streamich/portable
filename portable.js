@@ -2,56 +2,44 @@
 (function() {
   module.exports = {
     dest: './build',
-    layers: {
+    layer: {
       lib: {
         base: './lib',
-        globs: ['**/*.js'],
-        minify: false,
-        dest: './dist'
+        globs: ['**/*.js']
       },
       libmin: {
         base: './libmin',
-        globs: ['**/*.js'],
-        minify: false,
-        dest: './dist'
+        globs: ['**/*.js']
       },
       clisrc: {
         base: './src',
-        globs: ['**/*.js'],
-        minify: false
+        globs: ['**/*.js']
       },
       clinode: {
         base: './node_modules',
-        globs: ['!(cli)/**/*.+(js|json)', 'cli/*.+(js|json)', 'cli/!(examples)/**/*.+(js|json)'],
-        minify: false
+        globs: ['!(cli)/**/*.+(js|json)', 'cli/*.+(js|json)', 'cli/!(examples)/**/*.+(js|json)']
       },
       example: {
-        format: 'json',
-        base: './example',
-        dest: './example',
-        filename: 'volume.json',
+        base: './example/app',
+        filename: 'example.json',
         globs: ['**/*.js'],
-        minify: false
+        transform: [
+          [
+            '.+\.js$', function(file) {
+              return file.raw += '\n// Some comment...';
+            }
+          ]
+        ]
       }
     },
     merge: {
       cli: {
-        layers: [['', 'clinode'], ['node_modules', 'clisrc']]
+        layers: [['clinode', ''], ['clisrc', 'node_modules']]
       }
     },
-    "package": {
-      cli: {
-        type: 'node',
-        volumes: [['/app', 'cli']]
-      },
+    bundle: {
       example: {
-        dest: './example/app.js',
         type: 'browser',
-        lib: 'libmin',
-        argv: ['/app/example.js'],
-        env: {
-          PWD: '/app'
-        },
         volumes: [['/app', 'example']]
       }
     }

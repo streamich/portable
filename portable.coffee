@@ -3,7 +3,7 @@
 module.exports =
   dest: './build'
 
-  layers:
+  layer:
 
     # The all-inclusive `portable.js`
     lib:
@@ -11,8 +11,6 @@ module.exports =
       globs: [
         '**/*.js'
       ]
-      minify: false
-      dest: './dist'
 
     # The real-life `portable.js`
     libmin:
@@ -20,8 +18,6 @@ module.exports =
       globs: [
         '**/*.js'
       ]
-      minify: false
-      dest: './dist'
 
     # The CLI tool.
     clisrc:
@@ -29,7 +25,6 @@ module.exports =
       globs: [
         '**/*.js'
       ]
-      minify: false
 
     clinode:
       base: './node_modules'
@@ -38,43 +33,52 @@ module.exports =
         'cli/*.+(js|json)'
         'cli/!(examples)/**/*.+(js|json)'
       ]
-      minify: false
 
     example:
 
       # json -- plaing JSON
       # commonjs/require -- module.exports returns JSON object
       # jsonp -- uses commonjs/require tricks to minimize paths
-      format: 'json'
+#      format: 'json' # This should go to bundles.
 
-      base: './example'
-      dest: './example'
-      filename: 'volume.json'
+      base: './example/app'
+      filename: 'example.json'
       globs: [
         '**/*.js'
       ]
-      minify: false
+      # Collection of regexes to transform functions.
+      transform: [
+        # Regexp should be for the relative path.
+        # A list of transform functions, if string, loaded from `portable-transform-<string>` package.
+        # If package not found loaded from `./src/transform/transform-<string>.js`.
+        ['.+\.js$', (file) -> file.raw += '\n// Some comment...']
+        # Example:
+#        ['.+\.ts$', [
+#          'compile-typescript'
+#          'minify'
+#          (file) -> file.raw = '#! /bin/sh\n' + file.raw
+#        ]]
+      ]
 
   merge:
     cli:
       layers: [
-        ['', 'clinode'],
-        ['node_modules', 'clisrc']
+        ['clinode', ''],
+        ['clisrc', 'node_modules']
       ]
 
-  package:
-    cli:
-      type: 'node'
-      volumes: [
-        ['/app', 'cli']
-      ]
+  bundle:
+#    cli:
+#      type: 'node'
+#      volumes: [
+#        ['/app', 'cli']
+#      ]
     example:
-      dest: './example/app.js'
       type: 'browser'
-      lib: 'libmin'
-      argv: ['/app/example.js']
-      env:
-        PWD: '/app'
+#      lib: 'libmin'
+#      argv: ['/app/example.js']
+#      env:
+#        PWD: '/app'
       volumes: [
         ['/app', 'example']
       ]

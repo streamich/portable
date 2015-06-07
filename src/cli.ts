@@ -9,15 +9,16 @@ var log = require('./log');
 
 var commands = [
     'all',
+    'paths',
+    'layer',
     'merge',
-    'layers',
-    'drive',
+    'bundle',
 ];
 
 cli.parse({
     '--dont-minify':    ['m',       'Disable global minification'],
     verbose:            ['v',       'Aggressively print logs to console'],
-    debug:              ['d',       'Output debug info'],
+    debug:              ['',        'Output debug info'],
 }, commands);
 
 cli.main(function(args, options) {

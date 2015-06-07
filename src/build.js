@@ -2,19 +2,27 @@ var log = require('./log');
 var Builder = (function () {
     function Builder() {
     }
-    Builder.buildLayers = function (manifest) {
+    Builder.buildLayers = function (man) {
         var layer = require('./layer');
         var layers = {};
-        for (var name in manifest.data.layers) {
+        for (var name in man.data.layers) {
             log.info('Bulding layer: ' + name);
             var mylayer = layers[name] = new layer.Layer(name);
-            mylayer.setConfig(manifest.data.layers[name]);
+            mylayer.setConfig(man.data.layers[name]);
             mylayer.addFilesByGlobs();
-            var filepath = mylayer.write(manifest.destinationFolder);
+            var filepath = mylayer.write(man.destinationFolder);
             log.info('Saving layer: ' + filepath);
         }
     };
-    Builder.mergeLayers = function (manifest) {
+    Builder.mergeLayers = function (man) {
+    };
+    Builder.buildBundles = function (man) {
+        man.bundles.bundles.forEach(function (bundle) {
+            bundle.build();
+            bundle.write();
+        });
+    };
+    Builder.prototype.watch = function () {
     };
     return Builder;
 })();

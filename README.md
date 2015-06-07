@@ -1,3 +1,5 @@
+`portable.js` comes in two flavors.
+
 A stripped down `portable.js` version, which has just enough functionality to do web development with `npm` packages.
 
 Mini-package. What do you get:
@@ -36,6 +38,11 @@ If you know Node.js well, the best way to see how it works is to open the exampl
     3. Run the scripts inside `portable.js` with virtual read-only `fs`, and configure what functionality of other system modules to expose.
 
 `portable.js` should be distributed as a single file as well?
+
+Allow users to use any module transport: http://wiki.commonjs.org/wiki/Modules/Transport
+
+Async `require`: allow users to implement their own async require.
+https://github.com/amdjs/amdjs-api/blob/master/require.md
 
 ## License
 
