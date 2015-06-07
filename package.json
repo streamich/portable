@@ -1,7 +1,7 @@
 {
-  "name": "jssh-api-jssh",
-  "version": "0.0.12",
-  "description": "BASH-like API for jssh",
+  "name": "portable-js",
+  "version": "0.0.1",
+  "description": "Package your node.js or browser apps into a sigle .js file",
   "main": "src/api.js",
   "bin": {
     "pjs": "bin/pjs",
