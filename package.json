@@ -1,0 +1,22 @@
+{
+  "name": "jssh-api-jssh",
+  "version": "0.0.12",
+  "description": "BASH-like API for jssh",
+  "main": "src/api.js",
+  "bin": {
+    "pjs": "bin/pjs",
+    "portable.js": "bin/portable.js"
+  },
+  "preferGlobal": true,
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/streamich/portable.git"
+  },
+  "license": "Unlicense",
+  "dependencies": {
+    "uglify-js":    "2.4.23",
+    "cli":          "0.7.1",
+    "npmlog":       "1.2.1",
+    "glob":         "5.0.10"
+  }
+}

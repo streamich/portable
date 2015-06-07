@@ -1,0 +1,7 @@
+{
+  "fs.js": "",
+  "module.js": "",
+  "path.js": "",
+  "portable.js": "// This distribution bundles only the minimum required things to get `require` working.\n\n\n",
+  "util.js": "'use strict';\n\n/**\n * Just like Node.js `util` but without the stuff we don't need in a browser.\n */\n\nexports.inherits = function (ctor, superCtor) {\n    ctor.super_ = superCtor;\n    var TempCtor = function () {};\n    TempCtor.prototype = superCtor.prototype;\n    ctor.prototype = new TempCtor();\n    ctor.prototype.constructor = ctor;\n};\n\nexports.extend = function extend(origin, add) {\n    if (!origin || (typeof origin != 'object')) origin = {};\n    if (!add || (typeof add != 'object')) add = {};\n\n    for(var prop in add) origin[prop] = add[prop];\n    if(arguments.length > 2) {\n        var args = [].slice.call(arguments, 1);\n        args[0] = origin;\n        return extend.apply(this, args);\n    } else return origin;\n};\n"
+}
