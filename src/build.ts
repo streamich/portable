@@ -3,22 +3,20 @@ import manifest = require('./manifest');
 import bundle = require('./bundle');
 import log = require('./log');
 import file = require('./file');
+import layer = require('./layer');
 
 
 export class Builder {
 
-    static buildLayers(man: manifest.Manifest) {
-        var layer = require('./layer');
+    static buildLayers(man: manifest.Manifest, layers: layer.Collection) {
+        if(!layers) layers = man.layers;
 
-        var layers = {};
-        for(var name in man.data.layers) {
-            log.info('Bulding layer: ' + name);
+        for(var lname in layers.layers) {
+            var mylayer = layers.getLayer(lname);
+            log.info('Building layer: ' + lname);
 
-            var mylayer = layers[name] = new layer.Layer(name);
-            mylayer.setConfig(man.data.layers[name]);
-            mylayer.addFilesByGlobs();
+            mylayer.build();
             var filepath = mylayer.write(man.destinationFolder);
-
             log.info('Saving layer: ' + filepath);
         }
     }
@@ -27,11 +25,11 @@ export class Builder {
 
     }
 
-    static buildBundles(man: manifest.Manifest) {
-        man.bundles.bundles.forEach((bundle: bundle.Bundle) => {
-            bundle.build();
-            bundle.write();
-        });
+    static buildBundles(man: manifest.Manifest, bundles: bundle.Collection) {
+        for(var bname in bundles.bundles) {
+            var mybundle = bundles.bundles[bname];
+            mybundle.build();
+        }
     }
 
     files: file.Collection;

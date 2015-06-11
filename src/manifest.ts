@@ -7,7 +7,7 @@ import bundle = require('./bundle');
 
 
 export interface ILayersConfig {
-    base?: string;                  // Root dir where to look for files.
+    src?: string;                   // Root dir where to look for files.
     globs: string[];                // Globs to apply.
     filename?: string;              // Optional custom file name for the layer.
     transform?: any[];              // Transforms to apply to source code of files in this layer.
@@ -20,9 +20,15 @@ export interface IMergeConfig {
 
 
 export interface IBundleConfig {
-    type: string;                   // Type of the bundle to export.
+    target?: string;                // Type of the bundle to export.
     volumes: string[][];            // List of tuples [mountpoint, layer] to mount as `fs` folders.
     options: any;                   // Optional options to provide to the bundler.
+    props: any;
+}
+
+
+export interface IServerConfig {
+    port?: number;
 }
 
 
@@ -31,6 +37,7 @@ export interface IManifestData {
     layer:      {[s: string]: ILayersConfig};
     merge?:     {[s: string]: IMergeConfig};
     bundle?:    {[s: string]: IBundleConfig};
+    server?: IServerConfig;
 }
 
 
@@ -91,7 +98,16 @@ export class Manifest {
             }
             if(!file) throw Error('Manifest not found, looking for one of: ' + Manifest.defaultManifestFiles.join(', '));
         }
-        this.data = require(file);
+        try {
+            if (file.match(/\.js$/)) {
+                this.data = require(file);
+            } else {
+                this.data = JSON.parse(fs.readFileSync(file).toString());
+            }
+        } catch(e) {
+            throw Error('Config file not found: ' + file);
+        }
+        console.log(this.data);
         this.validate();
         this.parse();
     }

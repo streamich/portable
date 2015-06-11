@@ -2,9 +2,10 @@ import log = require('./log');
 import manifest = require('./manifest');
 import layer = require('./layer');
 import fs = require('fs');
+import events = require('events');
 
 
-export class Bundle {
+export class Bundle extends events.EventEmitter {
 
     name: string = '';
 
@@ -15,22 +16,35 @@ export class Bundle {
     layers: layer.Collection = new layer.Collection;
 
     // Output result of the bundle.
-    output: string;
+    output: string = '';
+
+    // File extension
+    extension: string = 'js';
+
+    mimeType: string = 'application/javascript';
+
+    defaultBundler = 'browser';
 
     constructor(name: string, man: manifest.Manifest) {
+        super();
         this.name = name;
         this.man = man;
     }
 
     setConfig(conf: manifest.IBundleConfig) {
+        var self = this;
+        if(!conf.target) conf.target = this.defaultBundler;
+        if(!conf.props) conf.props = {};
         this.conf = conf;
+        this.conf.volumes.forEach((voldef) => {
+            var layer_name = voldef[1];
+            this.layers.addLayer(this.man.layers.getLayer(layer_name));
+        });
     }
 
     build() {
         var self = this;
         log.info('Building bundle: ' + this.name);
-
-
 
         // First go through simple layers.
         this.conf.volumes.forEach((voldef) => {
@@ -42,7 +56,7 @@ export class Bundle {
             }
         });
 
-        // Now go through simple merge.
+        // Now go through merge layers.
         this.conf.volumes.forEach((voldef) => {
             var layer_name = voldef[1];
             var mylayer = this.man.layers.getLayer(layer_name);
@@ -51,8 +65,29 @@ export class Bundle {
             }
         });
 
-        var bundler = require('./bundle/bundle-browser');
-        this.output = bundler(this);
+        this.bundle();
+    }
+
+    getBundlerFunction(name: string) {
+        try {
+            return require('./bundle/bundle-' + name);
+        } catch(e) {
+            try {
+                return require('./bundle/portable-bundle-' + name);
+            } catch(e) {
+                try {
+                    return require(name);
+                } catch(e) {
+                    throw Error('Bundle "' + this.name + '" could not find bundler: ' + name);
+                }
+            }
+        }
+    }
+
+    bundle() {
+        var bundler_name = this.conf.target ? this.conf.target : this.defaultBundler;
+        var bundler = this.getBundlerFunction(bundler_name);
+        this.output = bundler(this, this.conf.props);
     }
 
     write() {
@@ -60,15 +95,34 @@ export class Bundle {
         fs.writeFileSync(filename, this.output);
     }
 
+    watch() {
+        for(var lname in this.layers.layers) {
+            var mylayer = this.layers.getLayer(lname);
+            mylayer.watch();
+            mylayer.on('file:new', function(myfile) {
+                this.emit('file:new', myfile, mylayer);
+                this.bundle();
+            }.bind(this));
+            mylayer.on('file:change', function(myfile) {
+                this.emit('file:change', myfile, mylayer);
+                this.bundle();
+            }.bind(this));
+            mylayer.on('file:delete', function(myfile) {
+                this.emit('file:delete', myfile, mylayer);
+                this.bundle();
+            }.bind(this));
+        }
+    }
+
 }
 
 
 export class Collection {
 
-    bundles: Bundle[] = [];
+    bundles: {[s: string]: Bundle} = {};
 
     addBundle(bundle: Bundle) {
-        this.bundles.push(bundle);
+        this.bundles[bundle.name] = bundle;
     }
 
     getBundle(name: string) {

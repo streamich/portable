@@ -18,6 +18,15 @@ module.exports =
       globs: [
         '**/*.js'
       ]
+      transform: [
+#        ['.+\.js$', 'uglify']
+        ['.+\.js$', (file) ->
+          if not file.filepath.match 'portable\.js' # Because `portable.js` evaluates to nothing.
+            uglify = require 'uglify-js'
+            file.raw = uglify.minify(file.raw, {fromString: true, mangle: true}).code
+        ]
+      ]
+
 
     # The CLI tool.
     clisrc:
@@ -44,7 +53,7 @@ module.exports =
       base: './example/app'
       filename: 'example.json'
       globs: [
-        '**/*.js'
+        '**/*.+(js|json)'
       ]
       # Collection of regexes to transform functions.
       transform: [
@@ -60,12 +69,19 @@ module.exports =
 #        ]]
       ]
 
+    test:
+      base: './test'
+      globs: ['**/*.+(js|json)']
+
+
   merge:
     cli:
       layers: [
         ['clinode', ''],
         ['clisrc', 'node_modules']
       ]
+
+
 
   bundle:
 #    cli:
@@ -74,11 +90,23 @@ module.exports =
 #        ['/app', 'cli']
 #      ]
     example:
-      type: 'browser'
-#      lib: 'libmin'
-#      argv: ['/app/example.js']
-#      env:
-#        PWD: '/app'
+      target: 'browser'
+      props:
+        argv: ['/app/hello.js']
+        env:
+          PWD: '/app'
       volumes: [
         ['/app', 'example']
       ]
+
+    test:
+      target: 'browser-full'
+      props:
+        argv: ['/test/mocha.js']
+        env: PWD: '/test'
+      volumes: [
+        ['/test', 'test']
+      ]
+
+  server:
+    port: 1777

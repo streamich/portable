@@ -95,4 +95,14 @@ export class Collection {
         }
         return this.files[filepath];
     }
+
+    /**
+     * Read the file from disk again.
+     */
+    getFresh(filepath: string): File {
+        var myfile = this.files[filepath];
+        if(!myfile) return this.get(filepath);
+        myfile.read();
+        return myfile;
+    }
 }

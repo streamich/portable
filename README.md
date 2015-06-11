@@ -30,6 +30,11 @@ If you know Node.js well, the best way to see how it works is to open the exampl
     
     process.require('util').isString("some string")
     
+How is `portable.js` different from other module loaders for the browser? Modules is JavaScript are an abstraction, they
+don't necessarily map 1:1 to files, thus module loaders have to come up with their way of structuring and loading modules.
+Node.js has chosen to define a module to be every file you `require`, so in Node.js modules do map 1:1 to your file 
+system. Portable.js uses (almost unmodified) the same code for module loading as Node.js.
+        
 # TODOs
 
  1. Run `portable.js` as a sandbox for node.js scripts:

@@ -50,7 +50,18 @@ var Manifest = (function () {
             if (!file)
                 throw Error('Manifest not found, looking for one of: ' + Manifest.defaultManifestFiles.join(', '));
         }
-        this.data = require(file);
+        try {
+            if (file.match(/\.js$/)) {
+                this.data = require(file);
+            }
+            else {
+                this.data = JSON.parse(fs.readFileSync(file).toString());
+            }
+        }
+        catch (e) {
+            throw Error('Config file not found: ' + file);
+        }
+        console.log(this.data);
         this.validate();
         this.parse();
     };

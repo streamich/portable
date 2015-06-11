@@ -9,7 +9,21 @@
       },
       libmin: {
         base: './libmin',
-        globs: ['**/*.js']
+        globs: ['**/*.js'],
+        transform: [
+          [
+            '.+\.js$', function(file) {
+              var uglify;
+              if (!file.filepath.match('portable\.js')) {
+                uglify = require('uglify-js');
+                return file.raw = uglify.minify(file.raw, {
+                  fromString: true,
+                  mangle: true
+                }).code;
+              }
+            }
+          ]
+        ]
       },
       clisrc: {
         base: './src',
@@ -22,7 +36,7 @@
       example: {
         base: './example/app',
         filename: 'example.json',
-        globs: ['**/*.js'],
+        globs: ['**/*.+(js|json)'],
         transform: [
           [
             '.+\.js$', function(file) {
@@ -30,6 +44,10 @@
             }
           ]
         ]
+      },
+      test: {
+        base: './test',
+        globs: ['**/*.+(js|json)']
       }
     },
     merge: {
@@ -39,9 +57,28 @@
     },
     bundle: {
       example: {
-        type: 'browser',
+        target: 'browser',
+        props: {
+          argv: ['/app/hello.js'],
+          env: {
+            PWD: '/app'
+          }
+        },
         volumes: [['/app', 'example']]
+      },
+      test: {
+        target: 'browser-full',
+        props: {
+          argv: ['/test/mocha.js'],
+          env: {
+            PWD: '/test'
+          }
+        },
+        volumes: [['/test', 'test']]
       }
+    },
+    server: {
+      port: 1777
     }
   };
 

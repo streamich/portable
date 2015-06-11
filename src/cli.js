@@ -6,9 +6,11 @@ var commands = [
     'layer',
     'merge',
     'bundle',
+    'server',
 ];
 cli.parse({
-    '--dont-minify': ['m', 'Disable global minification'],
+    file: ['f', 'portable.js config file location', 'string'],
+    'dont-minify': ['m', 'Disable global minification'],
     verbose: ['v', 'Aggressively print logs to console'],
     debug: ['', 'Output debug info']
 }, commands);

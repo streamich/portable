@@ -67,6 +67,16 @@ var Collection = (function () {
         }
         return this.files[filepath];
     };
+    /**
+     * Read the file from disk again.
+     */
+    Collection.prototype.getFresh = function (filepath) {
+        var myfile = this.files[filepath];
+        if (!myfile)
+            return this.get(filepath);
+        myfile.read();
+        return myfile;
+    };
     return Collection;
 })();
 exports.Collection = Collection;
