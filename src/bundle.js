@@ -23,14 +23,22 @@ var Bundle = (function (_super) {
         this.name = name;
         this.man = man;
     }
+    Bundle.prototype.validate = function (conf) {
+        if (!conf.volumes || !(conf.volumes instanceof Array) || !(conf.volumes.length)) {
+            throw Error('Bundle "' + this.name + '" volumes not defined.');
+        }
+    };
     Bundle.prototype.setConfig = function (conf) {
         var _this = this;
+        this.validate(conf);
         var self = this;
         if (!conf.target)
             conf.target = this.defaultBundler;
         if (!conf.props)
             conf.props = {};
         this.conf = conf;
+        if (!(conf.volumes[0] instanceof Array))
+            conf.volumes = [conf.volumes];
         this.conf.volumes.forEach(function (voldef) {
             var layer_name = voldef[1];
             _this.layers.addLayer(_this.man.layers.getLayer(layer_name));
@@ -65,7 +73,7 @@ var Bundle = (function (_super) {
         }
         catch (e) {
             try {
-                return require('./bundle/portable-bundle-' + name);
+                return require('portable-bundle-' + name);
             }
             catch (e) {
                 try {

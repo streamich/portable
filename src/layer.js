@@ -116,6 +116,7 @@ var LayerBase = (function (_super) {
          * A cache of built files, useful when `watching`, so that we don't have to rebuild the whole layer.
          */
         this.cache = {};
+        this.built = false;
         this.name = name;
         this.man = man;
     }
@@ -142,13 +143,13 @@ var LayerBase = (function (_super) {
     };
     LayerBase.prototype.write = function (dest) {
         var filename = this.getFileName();
-        var filepath = path.resolve(dest + '/' + filename);
+        var filepath = dest + '/' + filename;
         var json = JSON.stringify(this.cache, null, 2);
         fs.writeFileSync(filepath, json);
         return filepath;
     };
     LayerBase.prototype.toJson = function () {
-        return {};
+        return this.cache;
     };
     LayerBase.prototype.watch = function () {
     };
@@ -163,21 +164,33 @@ var Layer = (function (_super) {
     Layer.prototype.validateConfig = function (config) {
         if (!config.src)
             this.error('Base directory not defined.');
-        if (!(config.globs instanceof Array) || (!config.globs.length))
+        if (!(config.glob instanceof Array) || (!config.glob.length))
             this.error('No layer globs defined.');
+        if (config.transform && !(config.transform instanceof Array))
+            this.error('Invalid transforms parameter.');
     };
     Layer.prototype.setConfig = function (config) {
-        if (typeof config.globs == 'string')
-            config.globs = [config.globs];
+        if (typeof config.glob == 'string')
+            config.glob = [config.glob];
         _super.prototype.setConfig.call(this, config);
-        this.baseDir = path.resolve(this.conf.src) + path.sep;
+        this.baseDir = path.resolve(this.man.dir, this.conf.src) + path.sep;
+        if (config.transform) {
+            if (!(config.transform[0] instanceof Array))
+                config.transform = [config.transform];
+        }
+        else {
+            config.transform = [];
+        }
         this.transformMap = new TransformMap;
         this.transformMap.loadTransforms(this.conf.transform);
     };
     Layer.prototype.build = function () {
-        this.files = []; // Reset.
-        this.addFilesByGlobs(); // Read files from HD, if needed and apply transforms.
-        this.populateCache();
+        if (!this.built) {
+            this.files = []; // Reset.
+            this.addFilesByGlobs(); // Read files from HD, if needed and apply transforms.
+            this.populateCache();
+            this.built = true;
+        }
     };
     Layer.prototype.populateCache = function () {
         for (var filepath in this.files)
@@ -189,9 +202,6 @@ var Layer = (function (_super) {
         var regex = new RegExp('\\' + path.sep, 'g');
         relative = relative.replace(regex, '\/');
         this.cache[relative] = myfile.raw;
-    };
-    Layer.prototype.toJson = function () {
-        return this.cache;
     };
     Layer.prototype.addFile = function (myfile) {
         myfile = this.transformMap.applyTransforms(myfile);
@@ -205,7 +215,11 @@ var Layer = (function (_super) {
      * List of absolute file paths.
      */
     Layer.prototype.addFilesByPaths = function (files) {
-        files.forEach(this.addFileByPath.bind(this));
+        files.forEach(function (filepath) {
+            if (fs.statSync(filepath).isFile()) {
+                this.addFileByPath(filepath);
+            }
+        }.bind(this));
     };
     Layer.prototype.addByGlob = function (globexpr) {
         var files = glob.sync(this.baseDir + globexpr);
@@ -213,13 +227,13 @@ var Layer = (function (_super) {
     };
     Layer.prototype.addFilesByGlobs = function () {
         var self = this;
-        this.conf.globs.forEach(function (globexpr) {
+        this.conf.glob.forEach(function (globexpr) {
             self.addByGlob(globexpr);
         });
     };
     Layer.prototype.doesMatchGlobs = function (filepath) {
-        for (var i in this.conf.globs) {
-            var globexpr = this.conf.globs[i];
+        for (var i in this.conf.glob) {
+            var globexpr = this.conf.glob[i];
             if (minimatch(filepath, this.baseDir + globexpr)) {
                 return true;
             }
@@ -233,7 +247,8 @@ var Layer = (function (_super) {
             else if (prev === null) {
                 // f is a new file
                 if (this.doesMatchGlobs(filepath)) {
-                    var myfile = this.addFile(filepath);
+                    var rawfile = this.man.files.getFresh(filepath);
+                    var myfile = this.addFile(rawfile);
                     this.addFileToCache(myfile);
                     this.emit('file:new', myfile);
                 }
@@ -272,6 +287,23 @@ var LayerMerged = (function (_super) {
          */
         this.roots = [];
     }
+    LayerMerged.prototype.build = function () {
+        if (!this.built) {
+            this.conf.layers.forEach(function (tuple) {
+                var lname = tuple[0];
+                var lpath = tuple[1];
+                // Add trailing slash.
+                if (lpath[lpath.length - 1] != '/')
+                    lpath += '/';
+                var layer = this.man.layers.getLayer(lname);
+                layer.build();
+                for (var rel in layer.cache) {
+                    this.cache[lpath + rel] = layer.cache[rel];
+                }
+            }.bind(this));
+            this.built = true;
+        }
+    };
     return LayerMerged;
 })(LayerBase);
 exports.LayerMerged = LayerMerged;

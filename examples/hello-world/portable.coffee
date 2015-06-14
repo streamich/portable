@@ -1,16 +1,18 @@
 
-dest: './build'
+module.exports =
+  dest: './build'
 
-layer:
-  app:
-    src: './app'
-    globs: ['**/*.+(js|json)']
+  layer:
+    app:
+      src: './app'
+      globs: ['**/*.+(js|json)']
 
-bundle:
-  app:
-    type: 'browser'
-    props:
-      argv: ['/app/hello.js']
-    volumes: [
-      ['/app', 'app']
-    ]
+  bundle:
+    app:
+      target: 'browser'
+      props:
+        argv: ['/app/hello.js']
+        env: PWD: '/app'
+      volumes: [
+        ['/app', 'app']
+      ]

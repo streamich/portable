@@ -31,11 +31,21 @@ export class Bundle extends events.EventEmitter {
         this.man = man;
     }
 
+    validate(conf: manifest.IBundleConfig) {
+        if(!conf.volumes || !(conf.volumes instanceof Array) || !(conf.volumes.length)) {
+            throw Error('Bundle "' + this.name + '" volumes not defined.');
+        }
+    }
+
     setConfig(conf: manifest.IBundleConfig) {
+        this.validate(conf);
         var self = this;
         if(!conf.target) conf.target = this.defaultBundler;
         if(!conf.props) conf.props = {};
         this.conf = conf;
+
+        if(!(conf.volumes[0] instanceof Array)) conf.volumes = <any[]> [conf.volumes];
+
         this.conf.volumes.forEach((voldef) => {
             var layer_name = voldef[1];
             this.layers.addLayer(this.man.layers.getLayer(layer_name));
@@ -73,7 +83,7 @@ export class Bundle extends events.EventEmitter {
             return require('./bundle/bundle-' + name);
         } catch(e) {
             try {
-                return require('./bundle/portable-bundle-' + name);
+                return require('portable-bundle-' + name);
             } catch(e) {
                 try {
                     return require(name);

@@ -1,7 +1,0 @@
-{
-  "hello-world.js": "console.log(\"Hello world!\");\n\n// Some comment...",
-  "hello.js": "\ntry {\n    var mod = require('hello-world');\n\n} catch(e) {\n    console.log(e);\n    console.log(e.message);\n}\n\n\n\n// Some comment...",
-  "node_modules/hello-world/index.js": "\n// Some comment...",
-  "node_modules/hello-world/package.json": "{\n  \"main\": \"index.js\"\n}",
-  "test.js": "console.log('new file');\n\n// Some comment..."
-}

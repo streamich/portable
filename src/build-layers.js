@@ -1,7 +1,7 @@
 /// <reference path="./typing.d.ts" />
 var Layer = require('./Layer');
 var path = require('path');
-var mkdir = require('./mkdir');
+var mkdir = require('./util/mkdir');
 function build_layers(config, args, options, cmd) {
     var logger = console.log.bind(console);
     var dest = path.resolve("" + (config.dest ? config.dest : "./")) + "/";
@@ -13,7 +13,7 @@ function build_layers(config, args, options, cmd) {
         var layer = layers[name] = new Layer(lconf.base ? lconf.base : '');
         if (!(lconf.globs instanceof Array) || (!lconf.globs.length))
             throw Error('No layer globs defined for layer: ' + name);
-        layer.addByGlobs(lconf.globs);
+        layer.addByGlobs(lconf.glob);
         var layerfile = dest + name + '.nodefs.json';
         var size = layer.write(layerfile);
         logger('Saving layer: ' + layerfile);

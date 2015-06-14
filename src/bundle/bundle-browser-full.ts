@@ -4,14 +4,39 @@ import fs = require('fs');
 import extend = require('../util/extend');
 
 
+var lib_dir = __dirname + '/../../lib/';
 var lib_json = fs.readFileSync(__dirname + '/../../build/lib.json').toString();
 var lib = JSON.parse(lib_json);
+
+var modules_required = ['portable'];
 
 
 function bundle_browser_full(b: bundle.Bundle, props) {
 
+    var regex = new RegExp('require\\\([\'\"]([a-zA-Z\-0-9_]+)[\'\"]\\\)', 'g');
+    var regex2 = new RegExp('require\\\([\'\"]([a-zA-Z\-0-9_]+)[\'\"]\\\)');
+
+    var exclude = ['nm'];
+
+    var modules = modules_required.concat(props.modules ? props.modules : []);
+    for(var i = 0; i < modules.length; i++) {
+        var mod = modules[i];
+        var js_source = fs.readFileSync(lib_dir + mod + '.js').toString();
+        var matches = js_source.match(regex);
+        if(!matches) continue;
+        matches.forEach(function(match) {
+            var mod_name = match.match(regex2)[1];
+            if((modules.indexOf(mod_name) == -1) && (exclude.indexOf(mod_name) == -1)) modules.push(mod_name);
+        });
+    }
+
+    var mylib = {};
+    modules.forEach(function(mod) {
+        mylib[mod + '.js'] = lib[mod + '.js'];
+    });
+
     var volumes = {
-        '/lib': lib,
+        '/lib': mylib,
     };
 
     b.conf.volumes.forEach((volume) => {

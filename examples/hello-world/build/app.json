@@ -1,0 +1,5 @@
+{
+  "hello.js": "\nvar mod = require('hello-world');\nmod.log();\n\nconsole.log(require('fs').DRIVE);\n",
+  "node_modules/hello-world/index.js": "\nexports.log = function() {\n    console.log('Hello world!');\n};",
+  "node_modules/hello-world/package.json": "{\n  \"main\": \"index.js\"\n}"
+}

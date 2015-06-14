@@ -4,11 +4,16 @@ var fs = require('fs');
 var layer = require('./layer');
 var file = require('./file');
 var bundle = require('./bundle');
+var mkdir = require('./util/mkdir');
 /**
  * 'manifest' is the `portable.js` file the we read to get the JSON object defining how we should build the `fs`.
  */
 var Manifest = (function () {
     function Manifest() {
+        /**
+         * Directory where the manifest file is located, this is used as the base path.
+         */
+        this.dir = '';
         /**
          * The outputs of the manifest file.
          */
@@ -61,7 +66,7 @@ var Manifest = (function () {
         catch (e) {
             throw Error('Config file not found: ' + file);
         }
-        console.log(this.data);
+        this.dir = path.dirname(file);
         this.validate();
         this.parse();
     };
@@ -79,7 +84,10 @@ var Manifest = (function () {
             this.error('Invalid `bundle` definition.');
     };
     Manifest.prototype.parse = function () {
-        this.destinationFolder = path.resolve(this.data.dest);
+        this.destinationFolder = path.resolve(this.dir, this.data.dest);
+        if (!fs.existsSync(this.destinationFolder)) {
+            mkdir(this.destinationFolder);
+        }
         for (var lname in this.data.layer) {
             var mylayer = new layer.Layer(lname, this);
             mylayer.setConfig(this.data.layer[lname]);

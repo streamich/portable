@@ -15,19 +15,18 @@
   "license": "Unlicense",
   "dependencies": {
     "uglify-js":    "2.4.23",
-    "esprima":      "2.2.0",
-    "esmangle":     "1.0.1",
-    "escodegen":    "1.6.1",
     "cli":          "0.7.1",
     "npmlog":       "1.2.1",
     "glob":         "5.0.10",
     "express":      "4.12.4",
     "compression":  "1.5.0",
+    "cors":         "2.7.1",
     "watch":        "0.16.0",
     "minimatch":    "2.0.8",
-    "crunchme":     "*"
+    "crunchme":     "*",
+    "nodefs":       "*"
   },
   "devDependencies": {
-    "mocha":        "2.2.5"
+
   }
 }

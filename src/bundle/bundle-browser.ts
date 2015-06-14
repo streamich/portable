@@ -4,8 +4,13 @@ import fs = require('fs');
 import extend = require('../util/extend');
 
 
-var lib_json = fs.readFileSync(__dirname + '/../../build/libmin.json').toString();
-var lib = JSON.parse(lib_json);
+var volpath = __dirname + '/../../build/libmin.json';
+try {
+    var lib_json = fs.readFileSync(volpath).toString();
+    var lib = JSON.parse(lib_json);
+} catch(e) {
+    throw Error('Could not find library volume: ' + volpath);
+}
 
 
 function bundle_browser(b: bundle.Bundle, props) {

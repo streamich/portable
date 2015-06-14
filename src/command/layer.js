@@ -10,7 +10,6 @@ function cmd_layer(args, options) {
     else {
         working_set = new layer.Collection;
         args.forEach(function (lname) {
-            console.log(lname);
             var mylayer = man.layers.getLayer(lname);
             if (!mylayer)
                 throw Error('Layer not defined: ' + lname);

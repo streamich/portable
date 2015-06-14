@@ -4,18 +4,19 @@ import fs = require('fs');
 import layer = require('./layer');
 import file = require('./file');
 import bundle = require('./bundle');
+var mkdir = require('./util/mkdir');
 
 
 export interface ILayersConfig {
     src?: string;                   // Root dir where to look for files.
-    globs: string[];                // Globs to apply.
+    glob: string[];                 // Globs to apply.
     filename?: string;              // Optional custom file name for the layer.
     transform?: any[];              // Transforms to apply to source code of files in this layer.
 }
 
 
 export interface IMergeConfig {
-    layers: string[]|string[][];    // Tuples or layer names and their roots. Or just layer name, ir root is ''.
+    layers: string[][];             // Tuples or layer names and their roots. Or just layer name, ir root is ''.
 }
 
 
@@ -62,6 +63,11 @@ export class Manifest {
         return manifest;
     }
 
+    /**
+     * Directory where the manifest file is located, this is used as the base path.
+     */
+    dir: string = '';
+
     filepath: string;
 
     /**
@@ -107,7 +113,7 @@ export class Manifest {
         } catch(e) {
             throw Error('Config file not found: ' + file);
         }
-        console.log(this.data);
+        this.dir = path.dirname(file);
         this.validate();
         this.parse();
     }
@@ -128,7 +134,10 @@ export class Manifest {
     }
 
     parse() {
-        this.destinationFolder = path.resolve(this.data.dest);
+        this.destinationFolder = path.resolve(this.dir, this.data.dest);
+        if(!fs.existsSync(this.destinationFolder)) {
+            mkdir(this.destinationFolder);
+        }
 
         for(var lname in this.data.layer) {
             var mylayer = new layer.Layer(lname, this);

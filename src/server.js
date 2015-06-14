@@ -3,6 +3,7 @@ var log = require('./log');
 var build = require('./build');
 var express = require('express');
 var compression = require('compression');
+var cors = require('cors');
 var Server = (function () {
     function Server() {
         this.defaultPort = 1777;
@@ -23,6 +24,7 @@ var Server = (function () {
         // Build all bundles on startupt.
         build.Builder.buildBundles(this.man, this.man.bundles);
         var app = this.app = express();
+        app.use(cors());
         app.use(compression());
         app.get('/', this.onRouteIndex.bind(this));
         app.get('/layers/:layer', this.onRouteLayers.bind(this));
@@ -45,7 +47,8 @@ var Server = (function () {
         }
     };
     Server.prototype.onRouteIndex = function (req, res) {
-        res.end(['/layers', '/bundles']);
+        var out = JSON.stringify(['/layers', '/bundles']);
+        res.end(out);
     };
     Server.prototype.onRouteLayers = function (req, res) {
         var lname = req.params.layer;

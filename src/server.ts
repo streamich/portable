@@ -6,6 +6,7 @@ import build = require('./build');
 import file = require('./file');
 var express = require('express');
 var compression = require('compression');
+var cors = require('cors');
 
 
 export class Server {
@@ -35,6 +36,7 @@ export class Server {
         build.Builder.buildBundles(this.man, this.man.bundles);
 
         var app = this.app = express();
+        app.use(cors());
         app.use(compression());
 
         app.get('/', this.onRouteIndex.bind(this));
@@ -61,7 +63,8 @@ export class Server {
     }
 
     onRouteIndex(req, res) {
-        res.end(['/layers', '/bundles']);
+        var out = JSON.stringify(['/layers', '/bundles']);
+        res.end(out);
     }
 
     onRouteLayers(req, res) {
