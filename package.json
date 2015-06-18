@@ -24,7 +24,8 @@
     "watch":        "0.16.0",
     "minimatch":    "2.0.8",
     "crunchme":     "*",
-    "nodefs":       "*"
+    "memfs":        "*",
+    "unionfs":      "*"
   },
   "devDependencies": {
 

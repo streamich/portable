@@ -5,7 +5,7 @@ module.exports =
   layer:
     app:
       src: './app'
-      globs: ['**/*.+(js|json)']
+      glob: ['**/*.+(js|json)']
 
   bundle:
     app:

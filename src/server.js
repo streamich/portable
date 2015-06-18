@@ -1,6 +1,8 @@
 /// <reference path="typing.d.ts" />
 var log = require('./log');
 var build = require('./build');
+var https = require('https');
+var fs = require('fs');
 var express = require('express');
 var compression = require('compression');
 var cors = require('cors');
@@ -23,14 +25,25 @@ var Server = (function () {
         log.info('Starting server.');
         // Build all bundles on startupt.
         build.Builder.buildBundles(this.man, this.man.bundles);
+        var privateKey = fs.readFileSync(__dirname + '/../ssl/server.key', 'utf8');
+        var certificate = fs.readFileSync(__dirname + '/../ssl/server.crt', 'utf8');
+        var credentials = { key: privateKey, cert: certificate };
         var app = this.app = express();
         app.use(cors());
         app.use(compression());
         app.get('/', this.onRouteIndex.bind(this));
         app.get('/layers/:layer', this.onRouteLayers.bind(this));
         app.get('/bundles/:bundle', this.onRouteBundles.bind(this));
-        app.listen(this.conf.port);
-        log.info('http://127.0.0.1:' + this.conf.port);
+        var httpsServer = https.createServer(credentials, app);
+        httpsServer.listen(this.conf.port);
+        var host = 'https://127.0.0.1:' + this.conf.port;
+        log.info(host);
+        for (var lname in this.man.layers.layers) {
+            var mylayer = this.man.layers.getLayer(lname);
+            mylayer.build();
+            mylayer.watch();
+            log.info(host + '/layers/' + mylayer.name + '.json');
+        }
         for (var bname in this.man.bundles.bundles) {
             var mybundle = this.man.bundles.getBundle(bname);
             mybundle.watch();
@@ -43,16 +56,29 @@ var Server = (function () {
             mybundle.on('file:delete', function (myfile) {
                 log.info('Removed: ' + myfile.filepath);
             }.bind(this));
-            log.info('http://127.0.0.1:' + this.conf.port + '/bundles/' + mybundle.name + '.js');
+            log.info(host + '/bundles/' + mybundle.name + '.js');
         }
     };
     Server.prototype.onRouteIndex = function (req, res) {
         var out = JSON.stringify(['/layers', '/bundles']);
         res.end(out);
     };
+    Server.prototype.removeExtension = function (name) {
+        var pos = name.lastIndexOf('.');
+        if (pos > -1)
+            return name.substr(0, pos);
+        else
+            return name;
+    };
     Server.prototype.onRouteLayers = function (req, res) {
-        var lname = req.params.layer;
-        res.end('layer ' + lname);
+        var lname = this.removeExtension(req.params.layer);
+        var mylayer = this.man.layers.getLayer(lname);
+        if (!mylayer)
+            return res.end('');
+        res.set({
+            'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify(mylayer.cache));
     };
     Server.prototype.onRouteBundles = function (req, res) {
         var bname = req.params.bundle;

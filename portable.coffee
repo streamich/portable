@@ -1,9 +1,11 @@
 
 minify = (file) ->
-  # Because `portable.js` evaluates to nothing, so `uglify` just returns an empty file, so we don't minify it.
-  if not file.filepath.match 'portable\.js'
-    uglify = require 'uglify-js'
-    file.raw = uglify.minify(file.raw, fromString: true).code
+  uglify = require 'uglify-js'
+  file.raw = uglify.minify(file.raw, fromString: true).code
+
+  # Because `portable.js` evaluates to nothing is wrapped in lambda function, so we wrap it here instead.
+  if file.filepath.match 'portable\.js'
+    file.raw = "(function(process){#{file.raw}})"
 
 
 # > pjs layers
@@ -15,8 +17,12 @@ module.exports =
       src: './lib'
       glob: '**/*.js'
       transform: ['.+\.js$', minify]
-    libmin:
-      src: './libmin'
+    libmini:
+      src: './libmini'
+      glob: '**/*.js'
+      transform: ['.+\.js$', minify]
+    libmicro:
+      src: './libmicro'
       glob: '**/*.js'
       transform: ['.+\.js$', minify]
 

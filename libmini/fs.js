@@ -2,21 +2,24 @@ var path = require('path');
 var util = require('util');
 
 
+// fs.statSync
+// fs.realpathSync
+// fs.readFileSync
+
+
 //var LS = typeof localStorage != 'undefined' ? localStorage : {};
 var DRIVE = {};
 
 var fs = exports;
 fs.DRIVE = DRIVE;
 
-// Static method to set the stats properties on a Stats object.
+
 fs.Stats = function() {
     util.extend(this, {
         _isDir: false,
         _isFile: false
     });
 };
-
-var ffalse = function() { return false; };
 util.extend(fs.Stats.prototype, {
     isDirectory: function() { return this._isDir; },
     isFile: function() { return this._isFile; }
@@ -28,12 +31,6 @@ fs.writeFileSync = function(p, data) {
     DRIVE[filepath] = data;
 };
 
-fs.writeFile = function(p, data, callback) {
-    process.nextTick(function() {
-        fs.writeFileSync(p, data);
-        if(callback) callback();
-    });
-};
 
 fs.readFileSync = function(p) {
     var filepath = path.resolve(p);
@@ -42,10 +39,12 @@ fs.readFileSync = function(p) {
     return data;
 };
 
+
 fs.existsSync = function(p) {
     var filepath = path.resolve(p);
     return typeof DRIVE[filepath] !== 'undefined';
 };
+
 
 fs.statSync = function(p) {
     var filepath = path.resolve(p);
@@ -58,13 +57,11 @@ fs.statSync = function(p) {
     return stats;
 };
 
+
 fs.realpathSync = function(p) {
     return path.resolve(p);
 };
 
-fs.mount = function(mp, url, callback) {
-
-};
 
 fs.mountSync = function(mp, layer) {
     if(mp[mp.length - 1] != path.sep) mp += path.sep;
@@ -75,9 +72,31 @@ fs.mountSync = function(mp, layer) {
         if(parts.length > 2) {
             for(var i = 1; i < parts.length - 1; i++) {
                 curr += path.sep + parts[i];
-                DRIVE[curr] = null; // Means "directory".
+                fs.writeFileSync(filepath, null);
+                //DRIVE[curr] = null; // Means "directory".
             }
         }
-        DRIVE[filepath] = layer[rel];
+        fs.writeFileSync(filepath, layer[rel]);
+        //DRIVE[filepath] = layer[rel];
     }
+};
+
+// TODO: cache url, load each url only once...
+fs.mount = function(mp, url, callback) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url, true);
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+            if(req.status == 200) {
+                try {
+                    var layer = JSON.parse(req.responseText);
+                    fs.mountSync(mp, layer);
+                    callback(null, layer);
+                } catch(e) {
+                    callback(e);
+                }
+            } else callback(Error('Fetch error: ' + url));
+        }
+    };
+    req.send(null);
 };

@@ -4,16 +4,15 @@ tsd.json
 node_modules/
 .modules/
 .idea/
-/build
-/lib
-/libmin
-/tmp
-/misc
-/src
-/example
-/typings
-/portable.coffee
-/portable.js
+#/build
+#/lib
+#/libmin
+#/tmp
+#/misc
+#/example
+#/typings
+#/portable.coffee
+#/portable.js
 
 # Allow
 !README.md

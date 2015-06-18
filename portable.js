@@ -4,11 +4,12 @@
 
   minify = function(file) {
     var uglify;
-    if (!file.filepath.match('portable\.js')) {
-      uglify = require('uglify-js');
-      return file.raw = uglify.minify(file.raw, {
-        fromString: true
-      }).code;
+    uglify = require('uglify-js');
+    file.raw = uglify.minify(file.raw, {
+      fromString: true
+    }).code;
+    if (file.filepath.match('portable\.js')) {
+      return file.raw = "(function(process){" + file.raw + "})";
     }
   };
 
@@ -20,8 +21,13 @@
         glob: '**/*.js',
         transform: ['.+\.js$', minify]
       },
-      libmin: {
-        src: './libmin',
+      libmini: {
+        src: './libmini',
+        glob: '**/*.js',
+        transform: ['.+\.js$', minify]
+      },
+      libmicro: {
+        src: './libmicro',
         glob: '**/*.js',
         transform: ['.+\.js$', minify]
       },

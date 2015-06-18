@@ -1,41 +1,20 @@
-//"use strict";
-
+// The global wrapper will be added by a transform, see `portable.js` config.
 //(function(process) {
+
     process.global = this.global = this;
 
     function startup(require) {
-
-        require('shim-object-keys');
         require('process');
-
-        // Mount the /lib drive and any user drives to `fs`.
-        var nodefs = require('nodefs');
-        for(var mp in process.drives) nodefs.volume.mount(mp, process.drives[mp]);
-
-        //startup.globals();
-
+        var fs = require('fs');
+        for(var mp in process.drives) fs.mountSync(mp, process.drives[mp]);
         var Module = require('module');
-
-        // TODO: Do we need this?
-        process.require = Module._load;
-
         Module.runMain();
     }
 
-    // TODO: Do we need this?
-    //startup.globals = function() {
-        //global.process = process;
-        //global.global = global;
-        //global.GLOBAL = global;
-        //global.root = global;
-        // Normally we don't need buffer on the web... TODO: Shim it? Make users require it explicitly if they need it?
-        //global.Buffer = core_require('buffer').Buffer;
-    //};
 
     var runInThisContext = eval;
     var libVolume = '/lib';
 
-    // `NM` for `NativeModule`.
     function NM(id) {
         this.filename = id + '.js';
         this.id = id;

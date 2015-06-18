@@ -1,3 +1,14 @@
+# **portable.js**
+
+`portable.js` bundles your node.js and browser apps into a single or multiple `.js` files. 
+
+# Getting started
+
+Read this [introduction tutorial](https://github.com/streamich/portable-example) if you are using `portable.js`
+for the first time.
+
+# Bundles
+
 `portable.js` comes in two flavors.
 
 A stripped down `portable.js` version, which has just enough functionality to do web development with `npm` packages.

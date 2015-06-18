@@ -1,2 +1,2 @@
-#! /usr/bin/env node
-require('./portable.js');
+#!/usr/bin/env node
+require("../src/cli.js");
