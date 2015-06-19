@@ -69,7 +69,7 @@ var Bundle = (function (_super) {
     };
     Bundle.prototype.getBundlerFunction = function (name) {
         try {
-            return require('./bundle/bundle-' + name);
+            return require('../../portable-bundle-' + name + '/index.js');
         }
         catch (e) {
             try {

@@ -23,9 +23,12 @@
     "cors":         "2.7.1",
     "watch":        "0.16.0",
     "minimatch":    "2.0.8",
-    "crunchme":     "*",
-    "memfs":        "*",
-    "unionfs":      "*"
+
+    "portable-bundle-browser-micro":      "*",
+    "portable-bundle-browser-mini":       "*",
+    "portable-bundle-browser":            "*",
+    "portable-bundle-node":               "*",
+    "portable-transform-uglify":          "*"
   },
   "devDependencies": {
 

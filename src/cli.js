@@ -1,3 +1,5 @@
+var path = require('path');
+var fs = require('fs');
 var cli = require('cli');
 var log = require('./log');
 var commands = [
@@ -6,11 +8,10 @@ var commands = [
     'layer',
     'merge',
     'bundle',
-    'server',
+    'server'
 ];
 cli.parse({
     file: ['f', 'portable.js config file location', 'string'],
-    'dont-minify': ['m', 'Disable global minification'],
     verbose: ['v', 'Aggressively print logs to console'],
     debug: ['', 'Output debug info']
 }, commands);
@@ -19,7 +20,20 @@ cli.main(function (args, options) {
         if (cli.command) {
             if (commands.indexOf(cli.command) < 0)
                 throw Error('Invalid command: ' + cli.command);
-            var cmd = require('./command/' + cli.command + '.js');
+            // First try to run the `portable-js` package that is installed in folder where manifest file is located,
+            // if not found, run the command from the global package.
+            var manifest_dir = '';
+            if (options.file) {
+                manifest_dir = path.dirname(options.file);
+            }
+            else {
+                manifest_dir = process.cwd();
+            }
+            var command_dir = manifest_dir + '/node_modules/portable-js/src/command';
+            if (!fs.existsSync(command_dir))
+                command_dir = __dirname + '/command';
+            console.log(command_dir);
+            var cmd = require(command_dir + '/' + cli.command + '.js');
             cmd(args, options);
         }
         else {
