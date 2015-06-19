@@ -8,7 +8,7 @@ module.exports =
       glob: '**/*.js'
   bundle:
     app:
-      target: 'browser-full'
+      target: 'browser'
       props:
         argv: ['/app/index.js']
         env: PWD: '/app'

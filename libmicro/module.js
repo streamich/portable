@@ -327,6 +327,9 @@ Module.prototype.require = function(path) {
     return Module._load(path, this);
 };
 
+Module.async = function() {
+    throw Error('async require not defined');
+};
 
 // Run the file contents in the correct scope or sandbox. Expose
 // the correct helper variables (require, module, exports) to
@@ -338,7 +341,8 @@ Module.prototype._compile = function(content, filename) {
     content = content.replace(/^\#\!.*/, '');
 
     function require(path) {
-        return self.require(path);
+        if(arguments.length > 1) return Module.async(arguments, require, self);
+        else return self.require(path);
     }
 
     require.resolve = function(request) {
@@ -355,10 +359,10 @@ Module.prototype._compile = function(content, filename) {
 
     // Enable support to add extra extension types
     require.extensions = Module._extensions;
-    require.registerExtension = function() {
-        throw new Error('require.registerExtension() removed. Use ' +
-            'require.extensions instead.');
-    };
+    //require.registerExtension = function() {
+    //    throw new Error('require.registerExtension() removed. Use ' +
+    //        'require.extensions instead.');
+    //};
 
     require.cache = Module._cache;
 

@@ -10,7 +10,7 @@
     },
     bundle: {
       app: {
-        target: 'browser-full',
+        target: 'browser',
         props: {
           argv: ['/app/index.js'],
           env: {
