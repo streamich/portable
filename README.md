@@ -83,22 +83,102 @@ Here is a basic example:
 
 Relative paths always use forward slash `/` as path separator.
 
+Use the following parameters to define your layers:
+
+```typescript
+interface ILayersConfig {
+    src?: string;                       // Root dir where to look for files.
+    glob: string|string[];              // Globs to apply.
+    filename?: string;                  // Optional custom file name for the layer.
+    transform?: string[]|string[][];    // Transforms to apply to source code of files in this layer.
+}
+```
+
+ - `src` -- the root directory where to start looking for files.
+ - `glob` -- a single glob or an array of globs to match files that will be included in the layer.
+ - `filename` -- a custom file name under which to save your layer, otherwise `<layer-name>.json` will be used.
+ - `transform` -- a single transform or a an array of transforms that will be applied to each file in the layer. A
+ transform is a 2-tuple, where first argument is a regular expression to filter out files which will be transformed; and
+ the second argument if a transform function that receives a `File` object. In case, the second argument is a string
+ `portable.js` will use an already defined function that this string maps to *(TODO: describe how it works)*.
+ 
+*TODO: in future transform functions will map to `npm` modules named as `portable-transform-<name>`.*
+ 
+Example:
+ 
+```javascript
+{
+    layer: {
+        'layer-name': {
+            src: './lib',
+            glob: '**/*.js',
+            filename: 'custom_name.json',
+            transform: [
+                ['.*\.js$', 'uglify'],
+                ['.*\.js$', function debug_global_const(file) {
+                    file.raw = 'var __DEBUG__ = true;\n' + file.raw;
+                }],
+                ['.*\.js$', function add_shebang(file) {
+                    file.raw = '#! /usr/bin/env node\n' + file.raw;
+                }]
+            ]
+        }
+        // More layers...
+    }
+}
+```
+
 # Bundles
 
-Bundles are created by bundling functions, which are simply JavaScript functions that create bundles from layers.
+The final output you create out of your layers are called *bundles*. Depending on what is you final goal (a browser app
+or a node.js app) you use different bundling functions to create your bundles. You use `target` parameter to specify
+the bundling function.
+ 
+Bundle specification:
+
+```typescript
+interface IBundleConfig {
+    target?: string;                // Specifies the type of the bundle to export, a name of the bundling function.
+    volumes: string[][];            // List of 2-tuples [mountpoint, layer] to mount as `fs` folders.
+    props: any;                     // Optional options to provide to the bundling function.
+}
+```
+
+ - `target` -- the name of the bundling function.
+ - `volumes` -- a list of 2-tuples that defines how your layers are mounted to `fs.js`.
+ - `props` -- additional custom options that you can specify to a bundling function.
+ 
+*TODO: in the future bundling functions will map to `npm` modules named as `portable-bundle-<target>`.*
+ 
+Example:
+ 
+```javascript
+{
+    bundle: {
+        'bundle-name': {
+            target: 'browser-micro',
+            volumes: [
+                ['/usr', 'layer-name']
+            ],
+            props: {}
+        }
+        // More bundles...
+    }
+}
+```
 
 There are five built-in bundling functions:
 
  - `browser-micro` -- The most minimal (about 3Kb when gzipped) bundle that has just enough to get `require` working.
  - `browser-mini` -- Similar to `browser-micro`.
- - `browser` -- Provides all possible node.js API in a browser.
+ - `browser` -- Provides all possible node.js API in a browser environment.
  - `node` -- Packages a node.js app into a single `.js` file.
  - `none` -- Does nothing.
 
 ### `browser-micro`
 
 A stripped down `portable.js` version, which has just enough functionality to do web development the node.js way with 
-`npm` packages. It is the minimal distribution to get `require` function working.
+`npm` packages. It is the smallest distribution (at about 3KB) to get `require` function working.
 
 What do you get:
 
@@ -111,6 +191,37 @@ What do you get:
  into layers, and load new layers on-demand.
  - `path.resolve`, `path.dirname`, `path.basename`, and `path.extname` functions in `path.js` module.
  
+Custom options provided by `props` parameter:
+
+ - `argv` -- an array where first argument specifies the file to be executed.
+ - `env` -- environment variables that will be available through `process.env`.
+
+# CLI usage
+
+Build all layers:
+
+    portable.js layer
+    
+Build specific layers:
+    
+    portable.js layer name1[ name2[ name3[ ...]]]
+    
+Build all bundles:
+
+    portable.js bundle
+    
+Build specific bundles:
+
+    portable.js bundle name1[ name2[ name3[ ...]]]
+    
+Start a watch server:
+
+    portable.js server
+    
+Specify a custom config file using `--file` argument:
+
+    portable.js --file ./config.js
+
 # How it works
 
 The best way to see how it works is to see the [example app](https://github.com/streamich/portable-example/blob/master/dist/app.js)
@@ -120,20 +231,21 @@ generated using the `browser-micro` target.
 using static code analysis to *try* to determine what files to include in your app, `portable.js` simply ships your
 app with a *virtual in-memory file system* and then uses the same code node.js does to resolve and require your dependencies.
 
-Here is how it works. `portable.js` imitates the same booting sequence that node.js does when it loads its standard
+It works as follows: `portable.js` emulates the same booting sequence that node.js does when it loads its standard
 library before any of your code is executed.
 
 First, the `process` variable is initialized. Then miscellaneous modules like, `util.js` and `events.js` are loaded.
 
-Then node loads the file system `fs.js` module. At this point we mount the in-memory files defined in you "layers", so
+Then node.js loads the file system `fs.js` module. At this point we mount the in-memory files defined in your *layers*, so
 that they appear as regular files.
 
-Now, before your code gets executed, node.js loads the `module.js` module, which creates the `require` function you use to
+Finaly, before your code gets executed, node.js loads the `module.js` module, which creates the `require` function you use to
 require your dependencies.
 
-And here is the trick: because `portable.js` apps ship with a virtual in-memory file system and a working `fs.js` module,
-the `module.js` module and `require` just simply work out of the gate, without any modifications. We simply use the stock
-version of `module.js` taken from node.js source code. Thus you get exact same `require` behavior in your browser.
+Now here is the trick: because `portable.js` apps ship with a virtual in-memory file system and a working `fs.js` module,
+the `module.js` and `require` just simply work out of the gate, without any modifications. We simply use the stock
+version of `module.js` taken from node.js source code. Thus you get the exact same `require` behavior in your browser as 
+in your node.js apps.
    
 # AMD `require`
 
