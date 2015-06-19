@@ -1,6 +1,6 @@
 {
   "name": "portable-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Package your node.js or browser apps into a sigle .js file",
   "main": "src/api.js",
   "bin": {
