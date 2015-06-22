@@ -32,15 +32,10 @@ var TransformMap = (function () {
         }
         catch (e) {
             try {
-                return require(name);
+                return require('../../portable-transform-' + name + '/index.js');
             }
             catch (e) {
-                try {
-                    return require('./transform/transform-' + name);
-                }
-                catch (e) {
-                    throw Error('Could not find transform package: ' + name);
-                }
+                throw Error('Could not find transform package: ' + name);
             }
         }
     };
@@ -76,6 +71,9 @@ var TransformMap = (function () {
                     else if (typeof def == 'function') {
                         list.push(def); // Just use user's provided function.
                     }
+                    else if (def instanceof Array) {
+                        list.push([TransformMap.loadTransformFunction(def[0]), def[1]]);
+                    }
                     else {
                         throw Error('Unexpected transform definition: ' + each[0]);
                     }
@@ -96,8 +94,16 @@ var TransformMap = (function () {
         this.regexes.forEach(function (regex, i) {
             if (f.filepath.match(regex)) {
                 _this.transforms[i].forEach(function (transform) {
+                    var func, props = {};
+                    if (typeof transform == 'function') {
+                        func = transform;
+                    }
+                    else {
+                        func = transform[0];
+                        props = transform[1];
+                    }
                     f = f.cloneForTransform(transform);
-                    transform(f);
+                    func(f, props);
                 });
             }
         });

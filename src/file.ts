@@ -7,7 +7,7 @@ import fs = require('fs');
 export class File {
 
     /**
-     * Absolute file path on the real hard drive.
+     * Absolute file path.
      */
     filepath: string;
 

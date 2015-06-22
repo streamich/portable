@@ -80,14 +80,19 @@ export class Bundle extends events.EventEmitter {
 
     getBundlerFunction(name: string) {
         try {
-            return require('../../portable-bundle-' + name + '/index.js');
+            //console.log('portable-bundle-' + name);
+            return require('portable-bundle-' + name);
         } catch(e) {
+            log.verbose(e);
             try {
-                return require('portable-bundle-' + name);
+                //console.log('../../portable-bundle-' + name + '/index.js');
+                return require('../../portable-bundle-' + name + '/index.js');
             } catch(e) {
+                log.verbose(e);
                 try {
                     return require(name);
                 } catch(e) {
+                    log.verbose(e);
                     throw Error('Bundle "' + this.name + '" could not find bundler: ' + name);
                 }
             }

@@ -3,10 +3,7 @@ var fs = require('fs');
 var cli = require('cli');
 var log = require('./log');
 var commands = [
-    'all',
-    'paths',
     'layer',
-    'merge',
     'bundle',
     'server'
 ];
@@ -32,7 +29,10 @@ cli.main(function (args, options) {
             var command_dir = manifest_dir + '/node_modules/portable-js/src/command';
             if (!fs.existsSync(command_dir))
                 command_dir = __dirname + '/command';
-            console.log(command_dir);
+            if (options.verbose)
+                log.level = 'verbose';
+            if (options.debug)
+                log.level = 'silly';
             var cmd = require(command_dir + '/' + cli.command + '.js');
             cmd(args, options);
         }
