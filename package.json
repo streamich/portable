@@ -14,7 +14,7 @@
   },
   "license": "Unlicense",
   "dependencies": {
-    "uglify-js":    "2.4.23",
+    "uglify-js":    "3.14.3",
     "cli":          "0.7.1",
     "npmlog":       "1.2.1",
     "glob":         "5.0.10",
