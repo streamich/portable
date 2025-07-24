@@ -19,7 +19,7 @@
     "npmlog":       "1.2.1",
     "glob":         "5.0.10",
     "express":      "4.12.4",
-    "compression":  "1.5.0",
+    "compression":  "1.8.1",
     "cors":         "2.7.1",
     "watch":        "0.16.0",
     "minimatch":    "2.0.8",
